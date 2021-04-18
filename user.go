@@ -7,21 +7,49 @@ type User struct {
 	Addr string
 	C	 chan string
 	conn net.Conn
+	server 	 *Server
 }
 
 // NewUser 创建一个用户的API
-func NewUser(conn net.Conn) *User {
+func NewUser(conn net.Conn, server *Server) *User {
 	userAddr := conn.RemoteAddr().String()
 	user := &User{
 		Name: userAddr,
 		Addr: userAddr,
 		C: make(chan string),
 		conn: conn,
+		server: server,
 	}
 	// 启动当前user channel消息的goroutine
 	go user.ListenMessage()
 
 	return user
+}
+
+// Online 用户上线
+func (u *User) Online() {
+	// 用户上线，将用户加入onlineMap中
+	u.server.mapLock.Lock()
+	u.server.OnlineMap[u.Name] = u
+	u.server.mapLock.Unlock()
+
+	// 广播当前用户上限消息
+	u.server.BroadCast(u, "已上线")
+}
+
+// Offline 用户下线
+func (u *User) Offline() {
+	// 用户下线，将用户从onlineMap中删除
+	u.server.mapLock.Lock()
+	delete(u.server.OnlineMap, u.Name)
+	u.server.mapLock.Unlock()
+
+	// 广播当前用户上限消息
+	u.server.BroadCast(u, "下线")
+}
+
+func (u *User) DoMessage(msg string)  {
+	u.server.BroadCast(u, msg)
 }
 
 
