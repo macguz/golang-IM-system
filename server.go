@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -58,6 +59,28 @@ func (s *Server) Handler(conn net.Conn) {
 
 	// 广播当前用户上限消息
 	s.BroadCast(user, "已上线")
+
+	// 接收客户端发送的消息
+	go func() {
+		buf := make([]byte, 4096)
+		for {
+			n, err := conn.Read(buf)
+			if n == 0 {
+				s.BroadCast(user, "下线")
+				return
+			}
+
+			if err != nil && err != io.EOF {
+				fmt.Println("Conn Read error:", err)
+			}
+
+			// 提取用户消息
+			msg := string(buf)[:n-1]
+
+			// 将得到消息广播
+			s.BroadCast(user, msg)
+		}
+	}()
 
 	// 当前handler阻塞
 	select {
