@@ -80,6 +80,28 @@ func (u *User) DoMessage(msg string)  {
 			u.server.mapLock.Unlock()
 			u.SendMsg("用户名已修改为: " + u.Name + "\n")
 		}
+	} else if len(msg) > 4 && msg[:3] == "to|" {
+
+		// 1. 取出用户名
+		remoteName := strings.Split(msg, "|")[1]
+		if remoteName == "" {
+			u.SendMsg("请输入用户名, 正确格式: \"to|<user>|<msg>\n\"")
+			return
+		}
+
+		// 2. 提取用户
+		remoteUser, ok := u.server.OnlineMap[remoteName]
+		if !ok {
+			u.SendMsg("用户名不存在\n")
+		}
+
+		// 3. 发送消息
+		content := strings.Split(msg, "|")[2]
+		if content == "" {
+			u.SendMsg("无法发送空白消息\n")
+			return
+		}
+		remoteUser.SendMsg(u.Name + " 对您说: " + content + "\n")
 	} else {
 		u.server.BroadCast(u, msg)
 	}
