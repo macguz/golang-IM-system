@@ -9,11 +9,11 @@ import (
 )
 
 type Server struct {
-	Ip	 string
+	Ip   string
 	Port int
 	// 在线用户列表
 	OnlineMap map[string]*User
-	mapLock	sync.RWMutex
+	mapLock   sync.RWMutex
 
 	// 消息广播的channel
 	Message chan string
@@ -21,16 +21,16 @@ type Server struct {
 
 func NewServer(ip string, port int) *Server {
 	server := &Server{
-		Ip: ip,
-		Port: port,
+		Ip:        ip,
+		Port:      port,
 		OnlineMap: make(map[string]*User),
-		Message: make(chan string),
+		Message:   make(chan string),
 	}
 	return server
 }
 
 // LisenMessager 监听Message广播消息channel的goroutine，一旦有消息就发送给所有在线User
-func (s *Server) LisenMessager()  {
+func (s *Server) LisenMessager() {
 	for {
 		msg := <-s.Message
 
@@ -98,7 +98,6 @@ func (s *Server) Handler(conn net.Conn) {
 		}
 	}
 }
-
 
 func (s *Server) Start() {
 	// socket listen

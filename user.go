@@ -6,21 +6,21 @@ import (
 )
 
 type User struct {
-	Name string
-	Addr string
-	C	 chan string
-	conn net.Conn
-	server 	 *Server
+	Name   string
+	Addr   string
+	C      chan string
+	conn   net.Conn
+	server *Server
 }
 
 // NewUser 创建一个用户的API
 func NewUser(conn net.Conn, server *Server) *User {
 	userAddr := conn.RemoteAddr().String()
 	user := &User{
-		Name: userAddr,
-		Addr: userAddr,
-		C: make(chan string),
-		conn: conn,
+		Name:   userAddr,
+		Addr:   userAddr,
+		C:      make(chan string),
+		conn:   conn,
 		server: server,
 	}
 	// 启动当前user channel消息的goroutine
@@ -57,7 +57,7 @@ func (u *User) SendMsg(msg string) {
 }
 
 // DoMessage 处理用户发送消息
-func (u *User) DoMessage(msg string)  {
+func (u *User) DoMessage(msg string) {
 	if msg == "who" {
 		// 查询当前所有在线用户
 		u.server.mapLock.Lock()
@@ -106,7 +106,6 @@ func (u *User) DoMessage(msg string)  {
 		u.server.BroadCast(u, msg)
 	}
 }
-
 
 // ListenMessage 监听当前User channel的方法，一旦有消息，就直接发送给客户端
 func (u *User) ListenMessage() {
