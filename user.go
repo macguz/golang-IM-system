@@ -1,6 +1,9 @@
 package main
 
-import "net"
+import (
+	"net"
+	"strings"
+)
 
 type User struct {
 	Name string
@@ -56,12 +59,27 @@ func (u *User) SendMsg(msg string) {
 // DoMessage 处理用户发送消息
 func (u *User) DoMessage(msg string)  {
 	if msg == "who" {
+		// 查询当前所有在线用户
 		u.server.mapLock.Lock()
 		for _, user := range u.server.OnlineMap {
 			onlineMsg := "[" + user.Addr + "]" + user.Name + ": 在线..\n"
 			u.SendMsg(onlineMsg)
 		}
 		u.server.mapLock.Unlock()
+	} else if len(msg) > 7 && msg[:7] == "rename|" {
+		// 当前用户重命名
+		newName := strings.Split(msg, "|")[1]
+		_, ok := u.server.OnlineMap[newName]
+		if ok {
+			u.SendMsg("用户名已存在..\n")
+		} else {
+			u.server.mapLock.Lock()
+			delete(u.server.OnlineMap, u.Name)
+			u.Name = newName
+			u.server.OnlineMap[u.Name] = u
+			u.server.mapLock.Unlock()
+			u.SendMsg("用户名已修改为: " + u.Name + "\n")
+		}
 	} else {
 		u.server.BroadCast(u, msg)
 	}
